@@ -16,3 +16,10 @@ if not api_key:
 
 st.success("OPENAI_API_KEY loaded.")
 st.write("Step 3 complete: app imports shared RAG functions and validates API key.")
+uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
+if uploaded_file is None:
+    st.info("Please upload a PDF file to continue.")
+    st.stop()
+st.write(f"Uploaded file: {uploaded_file.name}  ({uploaded_file.size} bytes)")
+st.write("Step 4 complete: file uploader added and file details displayed.")
+
