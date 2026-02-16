@@ -32,15 +32,15 @@
 **Goal:** Real architecture. This is where you become "full stack."
 
 ### Backend
-- [ ] Rewrite backend as a **FastAPI** REST API
-- [ ] Endpoints: `POST /upload`, `POST /chat`, `GET /health`
-- [ ] Swap FAISS → **ChromaDB** (still local, but proper vector DB)
+- [x] Rewrite backend as a **FastAPI** REST API
+- [x] Endpoints: `POST /upload`, `POST /chat`, `GET /health`
+- [x] Swap FAISS → **ChromaDB** (still local, but proper vector DB)
 - [ ] Deploy backend on **Railway**
 
 ### Frontend
-- [ ] Build React app with **Next.js**
-- [ ] File upload page + chat page
-- [ ] Use **Tailwind CSS** + **shadcn/ui** for clean design
+- [x] Build React app with **Next.js**
+- [x] File upload page + chat page
+- [x] Use **Tailwind CSS** + **shadcn/ui** for clean design
 - [ ] Deploy frontend on **Vercel**
 - [ ] **Milestone:** Two separate deployed services talking to each other
 

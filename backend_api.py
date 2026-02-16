@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from langchain_community.vectorstores import Chroma
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -14,11 +15,25 @@ from rag_core import chunk_text, read_pdf
 
 load_dotenv()
 
-app = FastAPI(title="Chat with PDF API", version="0.1.0")
+app = FastAPI(title="Chat with PDF API", version="0.2.0")
 
 CHROMA_DIR = Path("data/chroma_db")
 CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 COLLECTION_NAME = "pdf_chunks"
+
+
+def parse_cors_origins() -> list[str]:
+    raw_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+    return [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=parse_cors_origins(),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class ChatRequest(BaseModel):
@@ -26,6 +41,21 @@ class ChatRequest(BaseModel):
     question: str = Field(..., min_length=1, description="User question")
     k: int = Field(3, ge=1, le=10, description="How many chunks to retrieve")
     chat_model: str = Field("gpt-4o-mini", description="OpenAI chat model name")
+
+
+class HealthResponse(BaseModel):
+    status: str
+
+
+class UploadResponse(BaseModel):
+    doc_id: str
+    filename: str
+    chunks_indexed: int
+
+
+class ChatResponse(BaseModel):
+    answer: str
+    sources: list[str]
 
 
 def ensure_api_key() -> None:
@@ -45,13 +75,26 @@ def get_vectorstore() -> Chroma:
     )
 
 
-@app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def build_prompt(question: str, context: str) -> str:
+    return f"""
+You are answering questions about a PDF.
+Use only the context below. If the answer is not in context, say: "I don't know based on this PDF."
+
+Question:
+{question}
+
+Context:
+{context}
+""".strip()
 
 
-@app.post("/upload")
-async def upload_pdf(file: UploadFile = File(...)) -> dict:
+@app.get("/health", response_model=HealthResponse)
+def health() -> HealthResponse:
+    return HealthResponse(status="ok")
+
+
+@app.post("/upload", response_model=UploadResponse)
+async def upload_pdf(file: UploadFile = File(...)) -> UploadResponse:
     ensure_api_key()
 
     filename = file.filename or "uploaded.pdf"
@@ -81,11 +124,11 @@ async def upload_pdf(file: UploadFile = File(...)) -> dict:
         vectorstore = get_vectorstore()
         vectorstore.add_texts(texts=chunks, metadatas=metadatas, ids=ids)
 
-        return {
-            "doc_id": doc_id,
-            "filename": filename,
-            "chunks_indexed": len(chunks),
-        }
+        return UploadResponse(
+            doc_id=doc_id,
+            filename=filename,
+            chunks_indexed=len(chunks),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
@@ -95,8 +138,8 @@ async def upload_pdf(file: UploadFile = File(...)) -> dict:
             os.unlink(tmp_path)
 
 
-@app.post("/chat")
-def chat_with_pdf(payload: ChatRequest) -> dict:
+@app.post("/chat", response_model=ChatResponse)
+def chat_with_pdf(payload: ChatRequest) -> ChatResponse:
     ensure_api_key()
 
     vectorstore = get_vectorstore()
@@ -113,20 +156,11 @@ def chat_with_pdf(payload: ChatRequest) -> dict:
         )
 
     context = "\n\n---\n\n".join(doc.page_content for doc in docs)
-    prompt = f"""
-You are answering questions about a PDF.
-Use only the context below. If the answer is not in context, say: "I don't know based on this PDF."
-
-Question:
-{payload.question}
-
-Context:
-{context}
-""".strip()
+    prompt = build_prompt(payload.question, context)
 
     llm = ChatOpenAI(model=payload.chat_model, temperature=0)
     response = llm.invoke(prompt)
     answer = response.content if hasattr(response, "content") else str(response)
 
     sources = [doc.page_content[:220].replace("\n", " ") for doc in docs]
-    return {"answer": answer, "sources": sources}
+    return ChatResponse(answer=answer, sources=sources)
