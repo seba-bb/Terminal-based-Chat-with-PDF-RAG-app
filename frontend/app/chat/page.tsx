@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +17,6 @@ type Message = {
 };
 
 export default function ChatPage() {
-  const searchParams = useSearchParams();
   const [docId, setDocId] = useState("");
   const [filename, setFilename] = useState("");
   const [question, setQuestion] = useState("");
@@ -27,8 +25,9 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const queryDocId = searchParams.get("docId");
-    const queryFilename = searchParams.get("filename");
+    const params = new URLSearchParams(window.location.search);
+    const queryDocId = params.get("docId");
+    const queryFilename = params.get("filename");
 
     if (queryDocId) {
       setDocId(queryDocId);
@@ -52,7 +51,7 @@ export default function ChatPage() {
     } catch {
       // Ignore malformed local storage values.
     }
-  }, [searchParams]);
+  }, []);
 
   const ask = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

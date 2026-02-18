@@ -6,10 +6,10 @@
 ## Phase 1: Proof of Concept (Weekend)
 **Goal:** Make it work. Prove you understand RAG.
 
-- [ ] Python script that reads a PDF, chunks it, embeds it, answers a question
-- [ ] Stack: Python + PyPDF2 + LangChain + OpenAI + FAISS
-- [ ] Run locally from terminal (no UI)
-- [ ] **Milestone:** You ask a question about a PDF and get a correct answer in your terminal
+- [x] Python script that reads a PDF, chunks it, embeds it, answers a question
+- [x] Stack: Python + PyPDF2 + LangChain + OpenAI + FAISS
+- [x] Run locally from terminal (no UI)
+- [x] **Milestone:** You ask a question about a PDF and get a correct answer in your terminal
 
 **Skills demonstrated:** Python, LLM APIs, RAG basics
 
@@ -18,11 +18,11 @@
 ## Phase 2: Streamlit MVP (3–5 days)
 **Goal:** Make it usable. Shareable link.
 
-- [ ] Wrap Phase 1 in a Streamlit UI
-- [ ] File upload widget + chat interface
-- [ ] Deploy on Streamlit Community Cloud
-- [ ] Push to GitHub with a clean README
-- [ ] **Milestone:** You can send someone a link and they can chat with a PDF
+- [x] Wrap Phase 1 in a Streamlit UI
+- [x] File upload widget + chat interface
+- [x] Deploy on Streamlit Community Cloud
+- [x] Push to GitHub with a clean README
+- [x] **Milestone:** You can send someone a link and they can chat with a PDF
 
 **Skills demonstrated:** Basic UI, deployment, Git
 
