@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
+from backend_api import app as app
 from rag_core import answer_question, build_index, chunk_text, read_pdf
 
 DEFAULT_PDF_PATH = "data/Attractions.pdf"
